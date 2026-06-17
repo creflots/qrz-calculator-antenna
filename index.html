@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arrow Cross Yagi & Dipole Lab - YD2UUY</title>
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            margin: 0; 
+            padding: 10px; 
+            color: #222222; 
+            background-color: #ffffff; 
+        }
+        .calc-box { 
+            border: 1px solid #e1e4e6; 
+            border-radius: 8px; 
+            background-color: #ffffff; 
+            overflow: hidden; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .header { 
+            background-color: #0b3c5d; 
+            color: #ffffff; 
+            padding: 12px 20px; 
+            font-family: monospace; 
+            font-size: 13px; 
+            font-weight: bold; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+        }
+        .lang-btn {
+            background-color: #328cc1;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            font-size: 11px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 5px;
+            font-family: sans-serif;
+        }
+        .lang-btn.active {
+            background-color: #b3c100;
+            color: #0b3c5d;
+        }
+        .content { padding: 20px; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; color: #333333; }
+        th { background-color: #0b3c5d; color: #ffffff; font-family: monospace; padding: 8px 10px; border: 1px solid #e1e4e6; text-align: left; }
+        td { padding: 8px 10px; border: 1px solid #e1e4e6; background-color: #ffffff; }
+        .table-v { border-top: 3px solid #fc3d21; }
+        .table-u { border-top: 3px solid #328cc1; }
+        .input-group { font-size: 13px; margin-bottom: 15px; background-color: #f8f9fa; padding: 12px; border-radius: 6px; border: 1px solid #e1e4e6; }
+        input { padding: 6px 10px; width: 85px; border: 1px solid #cccccc; border-radius: 4px; font-weight: bold; color: #0b3c5d; text-align: center; }
+        .boom-alert { background-color: #fcf8e3; border: 1px solid #faebcc; border-radius: 4px; padding: 12px; margin-top: 15px; font-size: 13px; font-weight: bold; text-align: center; color: #8a6d3b; }
+        hr { border: 0; border-top: 1px solid #e1e4e6; margin: 25px 0; }
+        .section-title { margin-top: 0; color: #0b3c5d; font-size: 16px; border-bottom: 2px solid #e1e4e6; padding-bottom: 5px; }
+        .note { font-size: 11px; color: #666666; margin-top: 8px; line-height: 1.4; }
+    </style>
+</head>
+<body>
+
+<div class="calc-box">
+    <div class="header">
+        <div id="lbl-header-title">LAB MODULE: ARROW CROSS YAGI & STANDARD DIPOLE</div>
+        <div>
+            <button onclick="setLanguage('id')" id="btn-lang-id" class="lang-btn active">ID</button>
+            <button onclick="setLanguage('en')" id="btn-lang-en" class="lang-btn">EN</button>
+        </div>
+    </div>
+    
+    <div class="content">
+        <h3 class="section-title" id="lbl-title-s1">1. Portable Arrow Cross Yagi Calculator (SWR 1.1 Verified)</h3>
+        <p style="font-size:12.5px; color:#555555; margin-top:0;" id="lbl-desc-s1">
+            Kalkulator berbasis data empiris teruji lapangan dengan SWR 1.1 pada frekuensi kerja satelit. Nilai spasi boom dan panjang elemen dikunci menggunakan karakteristik material asli stasiun bumi YD2UUY.
+        </p>
+        
+        <div class="input-group">
+            <strong id="lbl-freq-v">Frekuensi Kerja VHF:</strong> 
+            <input type="number" id="cross-fv" value="145.8" step="0.1" oninput="calcCrossArrow()"> MHz 
+            <span style="margin: 0 15px; color: #ccc;">|</span>
+            <strong id="lbl-freq-u">Frekuensi Kerja UHF:</strong> 
+            <input type="number" id="cross-fu" value="435.8" step="0.1" oninput="calcCrossArrow()"> MHz
+        </div>
+
+        <span style="font-weight:bold; color:#fc3d21; font-size:12px; font-family:monospace;" id="lbl-tag-v">[+] SISI HORIZONTAL: ELEMEN VHF (2-ELEMENT)</span>
+        <table class="table-v" style="margin-bottom: 20px;">
+            <thead>
+                <tr>
+                    <th id="lbl-th-v-name">Nama Elemen VHF</th>
+                    <th id="lbl-th-v-len">Total Panjang (cm)</th>
+                    <th id="lbl-th-v-leg">Ukuran Per Kaki (cm)</th>
+                    <th id="lbl-th-v-sp">Spasi Antar-Elemen (cm)</th>
+                    <th id="lbl-th-v-tot">Total Jarak dari Reflector VHF (cm)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><b id="lbl-el-vref">Reflector VHF</b> <span id="lbl-vref-pos">(Ujung Belakang)</span></td>
+                    <td id="v-ref-l" style="font-weight:bold; color:#0b3c5d;">-</td>
+                    <td style="color:#999999" id="lbl-vref-utuh">Satu Batang Utuh</td>
+                    <td style="font-weight:bold; color:#777777">0.0 cm</td>
+                    <td style="font-weight:bold; color:#777777" id="lbl-vref-start">0.0 cm (Titik 0 VHF)</td>
+                </tr>
+                <tr style="background-color:#fdfbf7;">
+                    <td><b id="lbl-el-vdrv">Driven VHF</b> (Split-Dipole)</td>
+                    <td id="v-drv-l" style="font-weight:bold; color:#0b3c5d;">-</td>
+                    <td id="v-drv-h" style="color:#fc3d21; font-weight:bold;">-</td>
+                    <td id="v-drv-s" style="font-weight:bold;">-</td>
+                    <td id="v-drv-tot" style="font-weight:bold; color:#0b3c5d;">-</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <span style="font-weight:bold; color:#328cc1; font-size:12px; font-family:monospace;" id="lbl-tag-u">[+] SISI VERTIKAL: ELEMEN UHF (3-ELEMENT)</span>
+        <table class="table-u">
+            <thead>
+                <tr>
+                    <th id="lbl-th-u-name">Nama Elemen UHF</th>
+                    <th id="lbl-th-u-len">Total Panjang (cm)</th>
+                    <th id="lbl-th-u-leg">Ukuran Per Kaki (cm)</th>
+                    <th id="lbl-th-u-sp">Spasi Antar-Elemen (cm)</th>
+                    <th id="lbl-th-u-tot">Total Jarak dari Reflector UHF (cm)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><b id="lbl-el-uref">Reflector UHF</b> <span id="lbl-uref-pos">(Ujung Belakang)</span></td>
+                    <td id="u-ref-l" style="font-weight:bold; color:#0b3c5d;">-</td>
+                    <td style="color:#999999" id="lbl-uref-utuh">Satu Batang Utuh</td>
+                    <td style="font-weight:bold; color:#777777">0.0 cm</td>
+                    <td style="font-weight:bold; color:#777777" id="lbl-uref-start">0.0 cm (Titik 0 UHF)</td>
+                </tr>
+                <tr style="background-color:#fdfbf7;">
+                    <td><b id="lbl-el-udrv">Driven UHF</b> (Split-Dipole)</td>
+                    <td id="u-drv-l" style="font-weight:bold; color:#0b3c5d;">-</td>
+                    <td id="u-drv-h" style="color:#fc3d21; font-weight:bold;">-</td>
+                    <td id="u-drv-s" style="font-weight:bold;">-</td>
+                    <td id="u-drv-tot" style="font-weight:bold; color:#0b3c5d;">-</td>
+                </tr>
+                <tr>
+                    <td><b id="lbl-el-udir">Director 1 UHF</b> <span id="lbl-udir-pos">(Elemen Depan)</span></td>
+                    <td id="u-dir-l" style="font-weight:bold; color:#0b3c5d;">-</td>
+                    <td style="color:#999999" id="lbl-udir-utuh">Satu Batang Utuh</td>
+                    <td id="u-dir-s" style="font-weight:bold;">-</td>
+                    <td id="u-dir-tot" style="font-weight:bold; color:#0b3c5d;">-</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="boom-alert">
+            <span id="lbl-boom-title">Rekomendasi Panjang Boom Minimum (Pegangan + Jarak Elemen):</span> <span id="arrow-boom-total" style="color:#fc3d21;">-</span>
+        </div>
+        <p class="note" id="lbl-note-s1">
+            * <b>Catatan Perakitan:</b> Nilai total jarak dihitung terpisah berdasarkan konvensi titik nol Reflector masing-masing band. Anda bisa merakit kedua Reflector (VHF & UHF) di satu titik silang yang sama untuk menyatukan struktur boom, lalu ikuti panduan bor maju ke depan sesuai tabel di atas.
+        </p>
+
+        <hr>
+
+        <h3 class="section-title" id="lbl-title-s2">2. General Purpose Half-Wave Dipole Calculator</h3>
+        <p style="font-size:12.5px; color:#555555; margin-top:0;" id="lbl-desc-s2">
+            Kalkulator pembantu untuk menghitung bentangan antena 1/2 wave standar menggunakan Velocity Factor hasil kalibrasi empiris lapangan (~0.900).
+        </p>
+        
+        <div class="input-group">
+            <strong id="lbl-freq-dp">Frekuensi Target Dipole:</strong> 
+            <input type="number" id="freq-dp" value="145.0" step="0.1" oninput="calcDipole()"> MHz
+        </div>
+        
+        <table>
+            <thead>
+                <tr style="background-color:#e1e4e6; font-weight:bold;">
+                    <th id="lbl-th-dp-part">Bagian Antena Dipole</th>
+                    <th id="lbl-th-dp-m">Ukuran dalam Meter (m)</th>
+                    <th id="lbl-th-dp-cm">Ukuran dalam Centimeter (cm)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><b id="lbl-dp-tot">Total Panjang Elemen (Ujung ke Ujung)</b></td>
+                    <td id="dp-total-m" style="font-weight:bold; color:#0b3c5d;">-</td>
+                    <td id="dp-total-cm" style="font-weight:bold; color:#0b3c5d;">-</td>
+                </tr>
+                <tr>
+                    <td id="lbl-dp-arma">Kaki Elemen Sisi A (Inner Coaxial)</td>
+                    <td id="dp-arm-m1">-</td>
+                    <td id="dp-arm-cm1" style="font-weight:bold; color:#fc3d21;">-</td>
+                </tr>
+                <tr>
+                    <td id="lbl-dp-armb">Kaki Elemen Sisi B (Shield Coaxial)</td>
+                    <td id="dp-arm-m2">-</td>
+                    <td id="dp-arm-cm2" style="font-weight:bold; color:#fc3d21;">-</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // Kamus Bahasa (ID & EN)
+    var currentLang = 'id';
+    var dictionary = {
+        id: {
+            headerTitle: "LAB MODULE: ARROW CROSS YAGI & STANDARD DIPOLE",
+            titleS1: "1. Portable Arrow Cross Yagi Calculator (SWR 1.1 Verified)",
+            descS1: "Kalkulator berbasis data empiris teruji lapangan dengan SWR 1.1 pada frekuensi kerja satelit. Nilai spasi boom dan panjang elemen dikunci menggunakan karakteristik material asli stasiun bumi YD2UUY.",
+            freqV: "Frekuensi Kerja VHF:",
+            freqU: "Frekuensi Kerja UHF:",
+            tagV: "[+] SISI HORIZONTAL: ELEMEN VHF (2-ELEMENT)",
+            tagU: "[+] SISI VERTIKAL: ELEMEN UHF (3-ELEMENT)",
+            thName: "Nama Elemen",
+            thLen: "Total Panjang (cm)",
+            thLeg: "Ukuran Per Kaki (cm)",
+            thSp: "Spasi Antar-Elemen (cm)",
+            thTot: "Total Jarak dari Reflector (cm)",
+            vRefPos: "(Ujung Belakang)",
+            uRefPos: "(Ujung Belakang)",
+            dirPos: "(Elemen Depan)",
+            utuh: "Satu Batang Utuh",
+            startV: "0.0 cm (Titik 0 VHF)",
+            startU: "0.0 cm (Titik 0 UHF)",
+            boomTitle: "Rekomendasi Panjang Boom Minimum (Pegangan + Jarak Elemen):",
+            noteS1: "* <b>Catatan Perakitan:</b> Nilai total jarak dihitung terpisah berdasarkan konvensi titik nol Reflector masing-masing band. Anda bisa merakit kedua Reflector (VHF & UHF) di satu titik silang yang sama untuk menyatukan struktur boom, lalu ikuti panduan bor maju ke depan sesuai tabel di atas.",
+            titleS2: "2. General Purpose Half-Wave Dipole Calculator",
+            descS2: "Kalkulator pembantu untuk menghitung bentangan antena 1/2 wave standar menggunakan Velocity Factor hasil kalibrasi empiris lapangan (~0.900).",
+            freqDp: "Frekuensi Target Dipole:",
+            thDpPart: "Bagian Antena Dipole",
+            thDpM: "Ukuran dalam Meter (m)",
+            thDpCm: "Ukuran dalam Centimeter (cm)",
+            dpTot: "Total Panjang Elemen (Ujung ke Ujung)",
+            dpArmA: "Kaki Elemen Sisi A (Inner Coaxial)",
+            dpArmB: "Kaki Elemen Sisi B (Shield Coaxial)"
+        },
+        en: {
+            headerTitle: "LAB MODULE: ARROW CROSS YAGI & STANDARD DIPOLE",
+            titleS1: "1. Portable Arrow Cross Yagi Calculator (SWR 1.1 Verified)",
+            descS1: "Calculator based on verified field empirical data with 1.1 SWR at satellite operational frequencies. Boom spacing and element lengths are locked according to the real material characteristics of ground station YD2UUY.",
+            freqV: "VHF Operating Freq:",
+            freqU: "UHF Operating Freq:",
+            tagV: "[+] HORIZONTAL SIDE: VHF ELEMENTS (2-ELEMENT)",
+            tagU: "[+] VERTICAL SIDE: UHF ELEMENTS (3-ELEMENT)",
+            thName: "Element Name",
+            thLen: "Total Length (cm)",
+            thLeg: "Length Per Leg (cm)",
+            thSp: "Inter-Element Spacing (cm)",
+            thTot: "Total Distance from Reflector (cm)",
+            vRefPos: "(Rear End)",
+            uRefPos: "(Rear End)",
+            dirPos: "(Front Element)",
+            utuh: "Solid Single Rod",
+            startV: "0.0 cm (VHF Reference Point 0)",
+            startU: "0.0 cm (UHF Reference Point 0)",
+            boomTitle: "Recommended Minimum Boom Length (Handle + Spacing):",
+            noteS1: "* <b>Assembly Note:</b> Total distance values are calculated separately based on each band's Reflector zero-point. You can mount both Reflectors (VHF & UHF) at the exact same cross-boom point to unify the structure, then drill forward following the spacing guide table above.",
+            titleS2: "2. General Purpose Half-Wave Dipole Calculator",
+            descS2: "A supporting calculator to compute standard half-wave dipole dimensions using the empirically calibrated field velocity factor (~0.900).",
+            freqDp: "Target Dipole Frequency:",
+            thDpPart: "Dipole Antenna Part",
+            thDpM: "Dimension in Meters (m)",
+            thDpCm: "Dimension in Centimeters (cm)",
+            dpTot: "Total Element Length (End-to-End)",
+            dpArmA: "Element Leg Side A (Inner Coaxial)",
+            dpArmB: "Element Leg Side B (Shield Coaxial)"
+        }
+    };
+
+    function setLanguage(lang) {
+        currentLang = lang;
+        document.getElementById('btn-lang-id').classList.toggle('active', lang === 'id');
+        document.getElementById('btn-lang-en').classList.toggle('active', lang === 'en');
+        
+        // Update UI Labels
+        var l = dictionary[lang];
+        document.getElementById('lbl-header-title').innerText = l.headerTitle;
+        document.getElementById('lbl-title-s1').innerText = l.titleS1;
+        document.getElementById('lbl-desc-s1').innerText = l.descS1;
+        document.getElementById('lbl-freq-v').innerText = l.freqV;
+        document.getElementById('lbl-freq-u').innerText = l.freqU;
+        document.getElementById('lbl-tag-v').innerText = l.tagV;
+        document.getElementById('lbl-tag-u').innerText = l.tagU;
+        
+        // Table Headers VHF
+        document.getElementById('lbl-th-v-name').innerText = l.thName;
+        document.getElementById('lbl-th-v-len').innerText = l.thLen;
+        document.getElementById('lbl-th-v-leg').innerText = l.thLeg;
+        document.getElementById('lbl-th-v-sp').innerText = l.thSp;
+        document.getElementById('lbl-th-v-tot').innerText = l.thTot;
+
+        // Table Headers UHF
+        document.getElementById('lbl-th-u-name').innerText = l.thName;
+        document.getElementById('lbl-th-u-len').innerText = l.thLen;
+        document.getElementById('lbl-th-u-leg').innerText = l.thLeg;
+        document.getElementById('lbl-th-u-sp').innerText = l.thSp;
+        document.getElementById('lbl-th-u-tot').innerText = l.thTot;
+        
+        document.getElementById('lbl-vref-pos').innerText = l.vRefPos;
+        document.getElementById('lbl-uref-pos').innerText = l.uRefPos;
+        document.getElementById('lbl-udir-pos').innerText = l.dirPos;
+        document.getElementById('lbl-vref-utuh').innerText = l.utuh;
+        document.getElementById('lbl-uref-utuh').innerText = l.utuh;
+        document.getElementById('lbl-udir-utuh').innerText = l.utuh;
+        document.getElementById('lbl-vref-start').innerText = l.startV;
+        document.getElementById('lbl-uref-start').innerText = l.startU;
+        
+        document.getElementById('lbl-boom-title').innerText = l.boomTitle;
+        document.getElementById('lbl-note-s1').innerHTML = l.noteS1;
+        
+        document.getElementById('lbl-title-s2').innerText = l.titleS2;
+        document.getElementById('lbl-desc-s2').innerText = l.descS2;
+        document.getElementById('lbl-freq-dp').innerText = l.freqDp;
+        document.getElementById('lbl-th-dp-part').innerText = l.thDpPart;
+        document.getElementById('lbl-th-dp-m').innerText = l.thDpM;
+        document.getElementById('lbl-th-dp-cm').innerText = l.thDpCm;
+        document.getElementById('lbl-dp-tot').innerText = l.dpTot;
+        document.getElementById('lbl-dp-arma').innerText = l.dpArmA;
+        document.getElementById('lbl-dp-armb').innerText = l.dpArmB;
+
+        // Recalculate values to refresh strings
+        calcCrossArrow();
+        calcDipole();
+    }
+
+	function calcCrossArrow() {
+		var fv = parseFloat(document.getElementById('cross-fv').value);
+		var fu = parseFloat(document.getElementById('cross-fu').value);
+		if(!fv || fv<=0 || !fu || fu<=0) return;
+		
+		// BASIS DATA EMPIRIS PENELITIAN YD2UUY:
+		var v_drv_const = 92.5 * fv;
+		var v_ref_const = 102.0 * fv;
+		var v_space_const = 40.0 * fv;
+		
+		var u_ref_const = 33.0 * fu;
+		var u_drv_const = 30.0 * fu;
+		var u_dir_const = 24.0 * fu;
+		var u_s1_const  = 19.0 * fu;
+		var u_s2_const  = 22.0 * fu;
+		
+		var v_ref = v_ref_const / fv;
+		var v_drv = v_drv_const / fv;
+		var v_space = v_space_const / fv;
+		
+		document.getElementById('v-ref-l').innerHTML = v_ref.toFixed(1) + " cm";
+		document.getElementById('v-drv-l').innerHTML = v_drv.toFixed(1) + " cm";
+		document.getElementById('v-drv-h').innerHTML = (v_drv / 2).toFixed(1) + " cm (x2)";
+		document.getElementById('v-drv-s').innerHTML = v_space.toFixed(1) + " cm";
+		document.getElementById('v-drv-tot').innerHTML = v_space.toFixed(1) + " cm";
+		
+		var u_ref = u_ref_const / fu;
+		var u_drv = u_drv_const / fu;
+		var u_dir = u_dir_const / fu;
+		var u_s1  = u_s1_const / fu;
+		var u_s2  = u_s2_const / fu;
+		var u_tot_dir = u_s1 + u_s2;
+		
+		document.getElementById('u-ref-l').innerHTML = u_ref.toFixed(1) + " cm";
+		document.getElementById('u-drv-l').innerHTML = u_drv.toFixed(1) + " cm";
+		document.getElementById('u-drv-h').innerHTML = (u_drv / 2).toFixed(1) + " cm (x2)";
+		document.getElementById('u-dir-l').innerHTML = u_dir.toFixed(1) + " cm";
+		
+		document.getElementById('u-drv-s').innerHTML = u_s1.toFixed(1) + " cm";
+		document.getElementById('u-drv-tot').innerHTML = u_s1.toFixed(1) + " cm";
+		document.getElementById('u-dir-s').innerHTML = u_s2.toFixed(1) + " cm";
+		document.getElementById('u-dir-tot').innerHTML = u_tot_dir.toFixed(1) + " cm";
+		
+		var max_physical_pos = Math.max(v_space, u_tot_dir);
+		var total_boom = max_physical_pos + 25;
+		
+        var unitM = currentLang === 'id' ? ' meter)' : ' meters)';
+		document.getElementById('arrow-boom-total').innerHTML = total_boom.toFixed(1) + " cm (" + (total_boom/100).toFixed(2) + unitM;
+	}
+
+	function calcDipole() {
+		var fd = parseFloat(document.getElementById('freq-dp').value);
+		if(!fd || fd<=0) return;
+		
+		var total_m = 134.865 / fd;
+		var total_cm = total_m * 100;
+		var half_m = total_m / 2;
+		var half_cm = total_cm / 2;
+		
+		document.getElementById('dp-total-m').innerHTML = total_m.toFixed(3) + " m";
+		document.getElementById('dp-total-cm').innerHTML = total_cm.toFixed(1) + " cm";
+		
+		document.getElementById('dp-arm-m1').innerHTML = half_m.toFixed(3) + " m";
+		document.getElementById('dp-arm-cm1').innerHTML = half_cm.toFixed(1) + " cm";
+		document.getElementById('dp-arm-m2').innerHTML = half_m.toFixed(3) + " m";
+		document.getElementById('dp-arm-cm2').innerHTML = half_cm.toFixed(1) + " cm";
+	}
+
+	// Boot up default language (ID)
+	setLanguage('id');
+</script>
+
+</body>
+</html>
